@@ -106,10 +106,14 @@ function startInstaller {
 
   echo "Migrating database"
   ./flow doctrine:migrate
+
+  createAdminPassword
   ADMINPW=$(cat admin-password.txt)
 
+  cd $(neosDirectory)
+
   echo "Creating administrator"
-  ./flow user:create --username "Administrator" --password "$ADMINPW" --firstName "Administrator" --lastName "-" --role "Neos.Neos:Administrator"
+  ./flow user:create --username "Administrator" --password "$ADMINPW" --firstName "Administrator" --lastName "Administrator" --role "Neos.Neos:Administrator"
 
   screen -XS "neos-dev" quit 2> /dev/null
   screen -dmS "neos-dev" ./flow server:run --host 0.0.0.0
@@ -129,8 +133,13 @@ function kickStart {
   echo "Removing neos/demo"
   export COMPOSER_ALLOW_SUPERUSER=1;
   composer remove neos/demo &> /dev/null
+  echo "Pre-Clearing cache..."
+  rm -rf Data/Temporary/*
+  rm -rf Data/Persistent/Cache/*
+
   echo "Creating site package: $PROJECTFULLKEY"
   ./flow kickstart:site --packageKey "$PROJECTFULLKEY" --siteName "$PROJECTNAME"
+  ./flow site:import --packageKey "$PROJECTFULLKEY"
   echo "Clearing cache..."
   rm -rf Data/Temporary/*
   rm -rf Data/Persistent/Cache/*
@@ -155,12 +164,12 @@ while [ -z "$CONFIGDONE" ] || [ "$CONFIGDONE" != "y" ]; do
   DIR=$(neosDirectory)
 
   echo "#######"
-  echo "Configuration: "
-  echo "Key: $PROJECTFULLKEY"
-  echo "Full-Id: $PROJECTID"
-  echo "Short-Id: $PROJECTSHORTID"
-  echo "Directory: $DIR"
-  echo "Basename: " $(basename $(neosDirectory))
+  echo -e "Configuration"
+  echo -e "\tKey: $PROJECTFULLKEY"
+  echo -e "\tFull-Id: $PROJECTID"
+  echo -e "\tShort-Id: $PROJECTSHORTID"
+  echo -e "\tDirectory: $DIR"
+  echo -e "\tBasename:" $(basename $(neosDirectory))
   echo "#######"
 
   prompt "Continue? (Type y)"
@@ -184,13 +193,6 @@ yamlDatabaseConfig
 
 echo "Starting installer"
 startInstaller
-
-echo "Once the installer is done, type done here: "
-
-DONE=""
-while [ "$DONE" != "done" ]; do
-  read DONE
-done
 
 echo "Alright, kickstarting!"
 kickStart
