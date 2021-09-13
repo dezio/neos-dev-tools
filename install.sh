@@ -100,6 +100,24 @@ function installNeos {
   composer create-project neos/neos-base-distribution $(basename $(neosDirectory))
 }
 
+function kickStart {
+  cd $(neosDirectory)
+  echo "Dir: " $(pwd)
+  echo "Removing neos/demo"
+  export COMPOSER_ALLOW_SUPERUSER=1;
+  composer remove neos/demo &> /dev/null
+  echo "Pre-Clearing cache..."
+  rm -rf Data/Temporary/*
+  rm -rf Data/Persistent/Cache/*
+
+  echo "Creating site package: $PROJECTFULLKEY"
+  ./flow kickstart:site --packageKey "$PROJECTFULLKEY" --siteName "$PROJECTNAME"
+  ./flow site:import "$PROJECTFULLKEY"
+  echo "Clearing cache..."
+  rm -rf Data/Temporary/*
+  rm -rf Data/Persistent/Cache/*
+}
+
 function startInstaller {
   cd $(neosDirectory)
   pwd
@@ -125,24 +143,6 @@ function yamlDatabaseConfig {
   apt-get install python python-pip
   pip install pyyaml
   python ./files/database.py $(neosDirectory)
-}
-
-function kickStart {
-  cd $(neosDirectory)
-  echo "Dir: " $(pwd)
-  echo "Removing neos/demo"
-  export COMPOSER_ALLOW_SUPERUSER=1;
-  composer remove neos/demo &> /dev/null
-  echo "Pre-Clearing cache..."
-  rm -rf Data/Temporary/*
-  rm -rf Data/Persistent/Cache/*
-
-  echo "Creating site package: $PROJECTFULLKEY"
-  ./flow kickstart:site --packageKey "$PROJECTFULLKEY" --siteName "$PROJECTNAME"
-  ./flow site:import --packageKey "$PROJECTFULLKEY"
-  echo "Clearing cache..."
-  rm -rf Data/Temporary/*
-  rm -rf Data/Persistent/Cache/*
 }
 
 ###############################
