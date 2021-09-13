@@ -8,7 +8,7 @@ function prompt {
 
   while [ -z "$ANSWER" ];
   do
-    echo -n "$1 > "
+    echo -n "$1 ]> "
     read ANSWER
   done
 }
