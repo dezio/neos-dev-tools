@@ -40,6 +40,12 @@ function createAdminPassword {
   echo $NEWPASSWORD > "admin-password.txt"
 }
 
+function administratorPassword {
+  cd $(neosDirectory)
+  [ ! -f "admin-password.txt" ] && createAdminPassword
+  cat "admin-password.txt"
+}
+
 function resetMysqlRootPassword {
   ## Generate random password
   NEWPASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-12};echo;)
@@ -198,3 +204,5 @@ echo "Alright, kickstarting!"
 kickStart
 
 echo "Neos should now be ready"
+echo "Username: Administrator"
+echo "Password:" $(administratorPassword)
