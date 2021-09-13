@@ -8,7 +8,7 @@ function prompt {
 
   while [ -z "$ANSWER" ];
   do
-    echo -n "$1 ]> "
+    echo -ne "$1:\n ]> "
     read ANSWER
   done
 }
@@ -19,6 +19,14 @@ function installComposer {
 }
 
 function installDependencies {
+  apt-get update
+  apt-get --allow-releaseinfo-change update
+  apt-get update
+
+  # Erstmal weg mit Apache xD
+  apt-get purge -y apache2
+
+  # Und rein...
   apt-get install -y curl
   apt-get install -y nginx
   apt-get install -y php7.3 php7.3-fpm php7.3-common php7.3-gd php7.3-imagick php7.3-mbstring mariadb-server mariadb-client screen
@@ -104,6 +112,10 @@ function installNeos {
   cd $WEBROOT
   export COMPOSER_ALLOW_SUPERUSER=1;
   composer create-project neos/neos-base-distribution $(basename $(neosDirectory))
+
+  if [ ! -f $DIR/Configuration/Settings.yaml ]; then
+    cp $DIR/Configuration/Settings.yaml.example $DIR/Configuration/Settings.yaml
+  fi
 }
 
 function kickStart {
@@ -128,6 +140,10 @@ function startInstaller {
   cd $(neosDirectory)
   pwd
 
+  screen -XS "neos-dev" quit 2> /dev/null
+  screen -dmS "neos-dev" ./flow server:run --host 0.0.0.0
+  echo "Started dev-server"
+
   echo "Migrating database"
   ./flow doctrine:migrate
 
@@ -146,7 +162,7 @@ function startInstaller {
 
 function yamlDatabaseConfig {
   cd $SCRIPTDIR
-  apt-get install python python-pip
+  apt-get install -y python python-pip
   pip install pyyaml
   python ./files/database.py $(neosDirectory)
 }
@@ -206,3 +222,8 @@ kickStart
 echo "Neos should now be ready"
 echo "Username: Administrator"
 echo "Password:" $(administratorPassword)
+
+cd $(neosDirectory)
+screen -XS "neos-dev" quit 2> /dev/null
+screen -dmS "neos-dev" ./flow server:run --host 0.0.0.0
+echo "Started dev-server"
