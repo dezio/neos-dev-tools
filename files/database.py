@@ -50,4 +50,5 @@ if __name__ == '__main__':
     f = open(configFile, "w")
     f.write(newConfig)
     f.close()
-    print newConfig
+
+    print(newConfig)
