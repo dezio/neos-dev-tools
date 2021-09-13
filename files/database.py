@@ -29,6 +29,9 @@ if __name__ == '__main__':
 
     if not dictionary['Neos'].has_key("Project") is None:
       dictionary['Neos']['Project'] = {}
+    
+    if not dictionary['Neos'].has_key("Imagine") is None:
+      dictionary['Neos']['Imagine'] = {"driver": "Imagick"}
 
     if not dictionary['Neos']['Flow'].has_key("persistence") is None:
       dictionary['Neos']['Flow']['persistence'] = {}

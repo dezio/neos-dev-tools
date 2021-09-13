@@ -1,6 +1,7 @@
 #!/bin/bash
 
 WEBROOT="/var/www/html"
+SCRIPTDIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 function prompt {
   ANSWER=""
@@ -31,6 +32,12 @@ function installDependencies {
 
 function neosDirectory {
   echo -n "$WEBROOT/neos-$PROJECTSHORTID"
+}
+
+function createAdminPassword {
+  cd $(neosDirectory)
+  NEWPASSWORD=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-12};echo;)
+  echo $NEWPASSWORD > "admin-password.txt"
 }
 
 function resetMysqlRootPassword {
@@ -84,48 +91,54 @@ function generateDatabase {
 }
 
 function installNeos {
-  if [ -d "$WEBROOT/$1" ]; then
+  DIR=$(neosDirectory)
+  if [ -d "$DIR" ]; then
     return
   fi
   cd $WEBROOT
   export COMPOSER_ALLOW_SUPERUSER=1;
-  composer create-project neos/neos-base-distribution $1
+  composer create-project neos/neos-base-distribution $(basename $(neosDirectory))
 }
 
 function startInstaller {
   cd $(neosDirectory)
   pwd
 
-  [ -f "./Data/SetupPassword.txt" ] && rm "./Data/SetupPassword.txt"
-  screen -XS "neos-installer" quit 2> /dev/null
-  screen -dmS "neos-installer" ./flow server:run --host 0.0.0.0
+  echo "Migrating database"
+  ./flow doctrine:migrate
+  ADMINPW=$(cat admin-password.txt)
 
-  echo "Setup is running on :8081."
-  echo "Waiting for Setup Password"
-  while [ ! -f "./Data/SetupPassword.txt" ]; do
-    echo -n "."
-    sleep 1
-  done
+  echo "Creating administrator"
+  ./flow user:create --username "Administrator" --password "$ADMINPW" --firstName "Administrator" --lastName "-" --role "Neos.Neos:Administrator"
 
-  cat "./Data/SetupPassword.txt"
+  screen -XS "neos-dev" quit 2> /dev/null
+  screen -dmS "neos-dev" ./flow server:run --host 0.0.0.0
+  echo "Started dev-server"
 }
 
 function yamlDatabaseConfig {
+  cd $SCRIPTDIR
   apt-get install python python-pip
   pip install pyyaml
   python ./files/database.py $(neosDirectory)
 }
 
 function kickStart {
-  cd $WEBROOT
+  cd $(neosDirectory)
+  echo "Dir: " $(pwd)
   echo "Removing neos/demo"
+  export COMPOSER_ALLOW_SUPERUSER=1;
   composer remove neos/demo &> /dev/null
   echo "Creating site package: $PROJECTFULLKEY"
-  echo "0" | ./flow kickstart:site --packageKey "$PROJECTFULLKEY" --siteName "$PROJECTNAME"
+  ./flow kickstart:site --packageKey "$PROJECTFULLKEY" --siteName "$PROJECTNAME"
   echo "Clearing cache..."
   rm -rf Data/Temporary/*
   rm -rf Data/Persistent/Cache/*
 }
+
+###############################
+## Program start
+###############################
 
 CONFIGDONE=""
 
@@ -146,7 +159,8 @@ while [ -z "$CONFIGDONE" ] || [ "$CONFIGDONE" != "y" ]; do
   echo "Key: $PROJECTFULLKEY"
   echo "Full-Id: $PROJECTID"
   echo "Short-Id: $PROJECTSHORTID"
-  echo "Directory: $DIR" 
+  echo "Directory: $DIR"
+  echo "Basename: " $(basename $(neosDirectory))
   echo "#######"
 
   prompt "Continue? (Type y)"
@@ -160,10 +174,13 @@ echo "Installing composer..."
 installComposer > /dev/null
 
 echo "Installing neos"
-installNeos "neos-$PROJECTSHORTID"
+installNeos
 
 echo "Preparing database"
 generateDatabase
+
+echo "Configuring database for neos"
+yamlDatabaseConfig
 
 echo "Starting installer"
 startInstaller
@@ -177,3 +194,5 @@ done
 
 echo "Alright, kickstarting!"
 kickStart
+
+echo "Neos should now be ready"
