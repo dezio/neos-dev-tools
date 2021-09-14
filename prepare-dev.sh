@@ -55,7 +55,8 @@ function createStructure {
 
 function compileOnce {
     cd $DIR
-    npm run-script build
+    echo "Compiling once..."
+    npm run-script build &> /dev/null
 }
 
 installNode

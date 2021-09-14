@@ -167,6 +167,11 @@ function yamlDatabaseConfig {
   python ./files/database.py $(neosDirectory)
 }
 
+function saveConfig {
+  cd $(neosDirectory)
+  echo $PROJECTFULLKEY > ".project-namespace"
+}
+
 ###############################
 ## Program start
 ###############################
@@ -197,6 +202,8 @@ while [ -z "$CONFIGDONE" ] || [ "$CONFIGDONE" != "y" ]; do
   prompt "Continue? (Type y)"
   CONFIGDONE="$ANSWER"
 done
+
+echo 
 
 echo "Installing dependencies..."
 installDependencies > /dev/null
