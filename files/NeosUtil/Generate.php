@@ -15,7 +15,7 @@ foreach(rglob(__DIR__ . "/Classes/*.php") as $file) {
 if(!function_exists("projectNamespace") || empty(projectNamespace())) {
 	echo "Unable to determine projectNamespace" . PHP_EOL;
 	die();
-}
+} // if end
 
 echo "Project namespace: " . projectNamespace() . PHP_EOL;
 $name = $argv[1];
@@ -24,7 +24,7 @@ echo "Component name: $name" . PHP_EOL;
 if(!ctype_upper(substr($name, 0, 1))) {
 	echo "Name should start with an uppercase char" . PHP_EOL;
 	die();
-}
+} // if end
 
 $config = new GeneratorConfig($name, projectBaseDir());
 $generator = new NeosGenerator($config);
