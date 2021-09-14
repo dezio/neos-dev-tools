@@ -44,14 +44,18 @@ function createStructure {
   touch $DIR/Resources/Sources/Style/Base.css &> /dev/null
 
   cp $SCRIPTDIR/files/{postcss.config.js,tsconfig.json,webpack.mix.js,tailwind.config.js} $DIR
+  cp $SCRIPTDIR/files/App.css $DIR/Resources/Sources/Style/App.css
+
+  npx npm-add-script -k "watch" -v "mix watch" --force
+  npx npm-add-script -k "build" -v "cross-env NODE_ENV=production mix build" --force
 
   echo "Structure: "
-  find $DIR/Resources/Sources  
+  find $DIR/Resources/Sources
 }
 
 function compileOnce {
     cd $DIR
-    npx mix build
+    npm run-script build
 }
 
 installNode
