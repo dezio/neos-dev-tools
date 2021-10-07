@@ -27,10 +27,9 @@ function installDependencies {
   apt-get purge -y apache2
 
   # Und rein...
-  apt-get install -y curl
-  apt-get install -y nginx
-  apt-get install -y php7.3 php7.3-fpm php7.3-common php7.3-gd php7.3-imagick php7.3-mbstring php7.3-xml php7.3-zip mariadb-server mariadb-client screen
-  apt-get install -y redis
+  apt-get install -y curl nginx redis screen unzip
+  apt-get install -y php7.3 php7.3-{fpm,common,gd,pdo,mysql,imagick,mbstring,xml,zip}
+  apt-get install -y mariadb-server mariadb-client 
 
   if [ -L /usr/bin/php ]; then
     rm /usr/bin/php
