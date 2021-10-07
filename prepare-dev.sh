@@ -61,6 +61,7 @@ function compileOnce {
 }
 
 function installNeosUtils {
+  echo "Installing utils..."
   cp -r $SCRIPTDIR/files/NeosUtil $DIR/
 }
 
