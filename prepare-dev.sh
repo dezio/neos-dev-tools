@@ -60,6 +60,10 @@ function compileOnce {
     npm run-script build &> /dev/null
 }
 
+function installNeosUtils {
+  cp -r $SCRIPTDIR/files/NeosUtil $DIR/
+}
+
 installNode
 initNpm
 createStructure
