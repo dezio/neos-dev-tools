@@ -14,8 +14,9 @@ function installNode {
 
 function initNpm {
   cd $DIR
+  echo "Initializing npm..."
   if [ ! -f $DIR/package.json ]; then
-    npm init -y
+    npm init -y 2> /dev/null
   fi
 
   # Tailwind
